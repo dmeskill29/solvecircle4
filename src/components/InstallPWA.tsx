@@ -23,8 +23,13 @@ export function InstallPWA() {
     useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   useEffect(() => {
+    const addDebugInfo = (info: string) => {
+      setDebugInfo((prev) => [...prev, `${new Date().toISOString()}: ${info}`]);
+    };
+
     // Check if app is already installed
     const isInStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -32,14 +37,30 @@ export function InstallPWA() {
       document.referrer.includes("android-app://");
 
     setIsStandalone(isInStandalone);
+    addDebugInfo(`isInStandalone: ${isInStandalone}`);
 
     const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
+      e.preventDefault(); // Prevent the default browser install prompt
+      addDebugInfo("beforeinstallprompt event received");
       // Store the event for later use
       setDeferredPrompt(e);
       setIsInstallable(true);
     };
 
+    addDebugInfo("Adding beforeinstallprompt event listener");
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    // Check service worker registration
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        addDebugInfo(`Service Worker registrations: ${registrations.length}`);
+        registrations.forEach((registration) => {
+          addDebugInfo(`SW scope: ${registration.scope}`);
+        });
+      });
+    } else {
+      addDebugInfo("Service Worker not supported");
+    }
 
     return () => {
       window.removeEventListener(
@@ -55,18 +76,24 @@ export function InstallPWA() {
     try {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
+      setDebugInfo((prev) => [...prev, `Install outcome: ${outcome}`]);
 
       if (outcome === "accepted") {
         setIsInstallable(false);
       }
     } catch (error) {
       console.error("Error installing PWA:", error);
+      setDebugInfo((prev) => [...prev, `Install error: ${error}`]);
     }
 
     setDeferredPrompt(null);
   };
 
-  if (isStandalone || !isInstallable) {
+  // Always show the component in development for debugging
+  if (
+    process.env.NODE_ENV === "production" &&
+    (isStandalone || !isInstallable)
+  ) {
     return null;
   }
 
@@ -107,6 +134,14 @@ export function InstallPWA() {
               Maybe Later
             </Button>
           </div>
+          {process.env.NODE_ENV !== "production" && (
+            <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 max-h-40 overflow-auto">
+              <p>Debug Info:</p>
+              {debugInfo.map((info, i) => (
+                <div key={i}>{info}</div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
