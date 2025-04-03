@@ -80,7 +80,7 @@ export function InstallPWA() {
         handleBeforeInstallPrompt
       );
     };
-  }, []);
+  }, [platform]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -129,8 +129,8 @@ export function InstallPWA() {
               To install on iOS:
               <ol className="list-decimal ml-4 mt-1">
                 <li>Tap the Share button in Safari</li>
-                <li>Scroll down and tap "Add to Home Screen"</li>
-                <li>Tap "Add" to confirm</li>
+                <li>Scroll down and tap &ldquo;Add to Home Screen&rdquo;</li>
+                <li>Tap &ldquo;Add&rdquo; to confirm</li>
               </ol>
             </p>
             <div className="mt-3">
