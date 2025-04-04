@@ -1,32 +1,96 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth-utils";
+import { getTaskById, getTaskMetadata } from "@/lib/tasks";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Card } from "@/components/ui/Card";
-import TaskActions from "./TaskActions";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
+import { TaskDetails } from "./TaskDetails";
+import { TaskComments } from "./TaskComments";
 
-interface TaskPageProps {
-  params: {
-    id: string;
+interface Props {
+  params: { id: string };
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const task = await getTaskMetadata(params.id);
+
+  if (!task) {
+    return { title: "Task Not Found" };
+  }
+
+  return {
+    title: `Task: ${task.title}`,
+    description: `View details for task ${task.title}`,
   };
 }
 
-export default async function TaskPage({ params }: TaskPageProps) {
-  const session = await getServerSession(authOptions);
+function TaskNotFound() {
+  return (
+    <div className="max-w-2xl mx-auto space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Task Not Found</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>The task you're looking for doesn't exist.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
-  if (!session) {
-    notFound();
+export default async function TaskPage({ params }: Props) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    redirect("/auth/signin");
   }
 
-  const task = await prisma.task.findUnique({
+  // Get employee and their business
+  const employee = await prisma.employee.findFirst({
     where: {
-      id: params.id,
+      userId: session.user.id,
     },
     include: {
-      assignedTo: true,
-      completedBy: true,
+      business: true,
+    },
+  });
+
+  if (!employee) {
+    redirect("/");
+  }
+
+  // Get task with all related data
+  const task = await prisma.task.findFirst({
+    where: {
+      id: params.id,
+      businessId: employee.businessId,
+    },
+    include: {
+      assignedTo: {
+        include: {
+          user: true,
+        },
+      },
+      createdBy: {
+        include: {
+          user: true,
+        },
+      },
+      category: true,
+      comments: {
+        include: {
+          author: {
+            include: {
+              user: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
@@ -34,82 +98,20 @@ export default async function TaskPage({ params }: TaskPageProps) {
     notFound();
   }
 
-  const isAssigned = task.assignedToId === session.user.id;
-  const isCompleted = task.completedById === session.user.id;
-  const canComplete = isAssigned && !isCompleted;
-
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">{task.title}</h1>
-        <div className="flex items-center space-x-4">
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-              task.status === "OPEN"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            )}
-          >
-            {task.status}
-          </span>
-          <span className="text-sm text-gray-500">Points: {task.points}</span>
-        </div>
-        <p className="text-gray-700">{task.description}</p>
-        {task.assignedTo && (
-          <Card className="p-4">
-            <div className="flex items-center space-x-4">
-              <div className="relative h-10 w-10 overflow-hidden rounded-full">
-                <Image
-                  src={task.assignedTo.image || "/placeholder-avatar.png"}
-                  alt={task.assignedTo.name || "User avatar"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <p className="font-medium">{task.assignedTo.name}</p>
-                <p className="text-sm text-gray-500">Assigned to</p>
-              </div>
-            </div>
-          </Card>
-        )}
-        {task.completedBy && (
-          <Card className="p-4">
-            <div className="flex items-center space-x-4">
-              <div className="relative h-10 w-10 overflow-hidden rounded-full">
-                <Image
-                  src={task.completedBy.image || "/placeholder-avatar.png"}
-                  alt={task.completedBy.name || "User avatar"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <p className="font-medium">{task.completedBy.name}</p>
-                <p className="text-sm text-gray-500">Completed by</p>
-              </div>
-            </div>
-          </Card>
-        )}
-        {task.imageUrl && (
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg">
-            <Image
-              src={task.imageUrl}
-              alt={task.title}
-              fill
-              className="object-cover"
-            />
-          </div>
-        )}
-      </div>
-      {session?.user && (
-        <TaskActions
-          taskId={task.id}
-          canComplete={canComplete}
-          isManager={session.user.role === "MANAGER"}
+    <div className="container mx-auto py-8 px-4">
+      <div className="space-y-8">
+        <TaskDetails
+          task={task}
+          isManager={employee.isManager}
+          isAssigned={task.assignedTo.userId === session.user.id}
         />
-      )}
+        <TaskComments
+          taskId={task.id}
+          comments={task.comments}
+          userId={session.user.id}
+        />
+      </div>
     </div>
   );
 }

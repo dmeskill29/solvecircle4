@@ -7,13 +7,23 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { schema, FormData } from "@/lib/validations/auth";
 
+const isValidCallbackUrl = (url: string) => {
+  // Only allow relative URLs that don't contain 'signin' to prevent loops
+  return url.startsWith("/") && !url.includes("/auth/signin");
+};
+
 export default function SignIn() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
-  const errorMessage = searchParams.get("error")
-    ? "Invalid credentials. Please try again."
-    : undefined;
+  const rawCallbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl = isValidCallbackUrl(rawCallbackUrl || "")
+    ? rawCallbackUrl
+    : "/dashboard";
+  const error = searchParams.get("error");
+  const errorMessage =
+    error === "CredentialsSignin" || error === "InvalidCredentials"
+      ? "Invalid email or password. Please try again."
+      : undefined;
 
   const {
     register,
@@ -26,18 +36,28 @@ export default function SignIn() {
   const onSubmit = async (data: FormData) => {
     try {
       const result = await signIn("credentials", {
-        redirect: false,
         email: data.email,
         password: data.password,
+        redirect: false,
       });
 
-      if (!result?.error) {
-        router.push(callbackUrl);
+      if (result?.error) {
+        console.error("Sign in error:", result.error);
+        router.push(`/auth/signin?error=CredentialsSignin`);
       } else {
-        router.push(`/auth/signin?error=InvalidCredentials`);
+        // Check if user needs onboarding
+        const response = await fetch("/api/auth/me");
+        const userData = await response.json();
+
+        if (!userData.businessId) {
+          router.push("/onboarding");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (err) {
       console.error("Sign in error:", err);
+      router.push(`/auth/signin?error=CredentialsSignin`);
     }
   };
 

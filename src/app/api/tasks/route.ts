@@ -1,78 +1,186 @@
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+// Schema for task creation validation
+const createTaskSchema = z.object({
+  title: z.string().min(3).max(100),
+  description: z.string().min(10).max(500),
+  points: z.number().int().min(1).max(100),
+});
 
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const session = await getServerSession(authOptions);
+    const {
+      title,
+      description,
+      assignedToId,
+      categoryId,
+      priority,
+      businessId,
+    } = await request.json();
 
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    // Verify user has access to the business
+    const employee = await prisma.employee.findFirst({
+      where: {
+        userId: session.user.id,
+        businessId,
+      },
+    });
+
+    if (!employee) {
+      return NextResponse.json(
+        { error: "Not authorized to create tasks" },
+        { status: 403 }
+      );
     }
 
-    if (session.user.role !== "MANAGER") {
-      return new NextResponse("Forbidden", { status: 403 });
+    // Verify assigned user exists and belongs to the business
+    const assignedEmployee = await prisma.employee.findFirst({
+      where: {
+        id: assignedToId,
+        businessId,
+      },
+    });
+
+    if (!assignedEmployee) {
+      return NextResponse.json(
+        { error: "Invalid assigned user" },
+        { status: 400 }
+      );
     }
 
-    const json = await request.json();
+    // Verify category belongs to the business if provided
+    if (categoryId) {
+      const category = await prisma.taskCategory.findFirst({
+        where: {
+          id: categoryId,
+          businessId,
+        },
+      });
 
-    const { title, description, points } = json;
-
-    if (!title || !description || !points) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      if (!category) {
+        return NextResponse.json(
+          { error: "Invalid category" },
+          { status: 400 }
+        );
+      }
     }
 
     const task = await prisma.task.create({
       data: {
         title,
         description,
-        points,
-        status: "OPEN",
-        createdById: session.user.id,
+        status: "PENDING",
+        priority: priority || "MEDIUM",
+        businessId,
+        assignedToId,
+        categoryId,
+        createdById: employee.id,
+      },
+      include: {
+        assignedTo: {
+          include: {
+            user: true,
+          },
+        },
+        createdBy: {
+          include: {
+            user: true,
+          },
+        },
+        category: true,
       },
     });
 
     return NextResponse.json(task);
   } catch (error) {
-    console.error("[TASKS_POST]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error("Error creating task:", error);
+    return NextResponse.json(
+      { error: "Failed to create task" },
+      { status: 500 }
+    );
   }
 }
 
+// Get all tasks
 export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
+  try {
+    const { searchParams } = new URL(request.url);
+    const businessId = searchParams.get("businessId");
+    const status = searchParams.get("status");
+    const assignedToId = searchParams.get("assignedToId");
+    const categoryId = searchParams.get("categoryId");
+    const priority = searchParams.get("priority");
+
+    if (!businessId) {
+      return NextResponse.json(
+        { error: "Business ID is required" },
+        { status: 400 }
+      );
     }
 
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const assignedToMe = searchParams.get("assignedToMe") === "true";
+    // Verify user has access to the business
+    const employee = await prisma.employee.findFirst({
+      where: {
+        userId: session.user.id,
+        businessId,
+      },
+    });
 
-    const where = {
-      OR: [
-        ...(assignedToMe ? [{ assignedToId: session.user.id }] : []),
-        ...(status ? [{ status }] : []),
-      ],
+    if (!employee) {
+      return NextResponse.json(
+        { error: "Not authorized to view tasks" },
+        { status: 403 }
+      );
+    }
+
+    const where: any = {
+      businessId,
     };
 
+    if (status) {
+      where.status = status;
+    }
+
+    if (assignedToId) {
+      where.assignedToId = assignedToId;
+    }
+
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+
+    if (priority) {
+      where.priority = priority;
+    }
+
     const tasks = await prisma.task.findMany({
-      where: Object.keys(where.OR).length > 0 ? where : undefined,
+      where,
       include: {
         assignedTo: {
-          select: {
-            name: true,
-            image: true,
+          include: {
+            user: true,
           },
         },
         createdBy: {
-          select: {
-            name: true,
+          include: {
+            user: true,
           },
         },
+        category: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -81,7 +189,10 @@ export async function GET(request: Request) {
 
     return NextResponse.json(tasks);
   } catch (error) {
-    console.error("[TASKS_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error("Error fetching tasks:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch tasks" },
+      { status: 500 }
+    );
   }
 } 

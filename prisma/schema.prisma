@@ -20,6 +20,13 @@ model User {
   assignedTasks Task[]    @relation("AssignedTasks")
   accounts      Account[]
   sessions      Session[]
+  achievements  UserAchievement[]
+  redemptions   RewardRedemption[]
+  business      Business? @relation(fields: [businessId], references: [id])
+  businessId    String?
+  ownedBusiness Business? @relation("BusinessOwner")
+  activityLogs  UserActivityLog[]
+  comments      TaskComment[]
 }
 
 model Account {
@@ -55,20 +62,120 @@ model Task {
   description String
   points      Int
   status      TaskStatus @default(OPEN)
+  priority    TaskPriority @default(MEDIUM)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   createdBy   User      @relation("CreatedTasks", fields: [creatorId], references: [id])
   creatorId   String
   assignedTo  User?     @relation("AssignedTasks", fields: [assigneeId], references: [id])
   assigneeId  String?
+  completedAt DateTime?
+  category    TaskCategory? @relation(fields: [categoryId], references: [id])
+  categoryId  String?
+  comments    TaskComment[]
+  business    Business? @relation(fields: [businessId], references: [id])
+  businessId  String?
+
+  @@index([businessId])
+  @@index([categoryId])
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+
+  @@index([taskId])
+  @@index([authorId])
+}
+
+model TaskCategory {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String   @default("#94A3B8") // Default slate-400 color
+  business    Business @relation(fields: [businessId], references: [id])
+  businessId  String
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name, businessId])
+  @@index([businessId])
+}
+
+model Achievement {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String
+  icon        String    // Emoji or icon class
+  type        AchievementType
+  threshold   Int       // Number required to unlock (e.g., tasks completed, points earned)
+  points      Int       // Points awarded for unlocking
+  createdAt   DateTime  @default(now())
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
 }
 
 model RewardItem {
   id          String @id @default(cuid())
-  name        String
+  name        String @unique
   description String
   pointsCost  Int
   available   Boolean @default(true)
+  redemptions RewardRedemption[]
+}
+
+model RewardRedemption {
+  id          String    @id @default(cuid())
+  userId      String
+  rewardId    String
+  pointsCost  Int
+  redeemedAt  DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward      RewardItem @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([rewardId])
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique // For joining existing businesses
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  owner       User     @relation("BusinessOwner", fields: [ownerId], references: [id])
+  ownerId     String   @unique
+  employees   User[]
+  categories  TaskCategory[]
+  tasks       Task[]
+}
+
+model UserActivityLog {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
 }
 
 enum UserRole {
@@ -82,4 +189,18 @@ enum TaskStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+}
+
+enum AchievementType {
+  TASKS_COMPLETED
+  POINTS_EARNED
+  TASKS_CREATED
+  DAYS_ACTIVE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 } 
