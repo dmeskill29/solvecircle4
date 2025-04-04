@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Toaster } from "@/components/ui/Toaster";
 import { InstallPWA } from "@/components/InstallPWA";
-import ThemeRegistry from "@/app/components/ThemeRegistry";
 import { Navbar } from "@/components/Navbar";
 import { UserMenu } from "@/components/UserMenu";
 import { Providers } from "@/components/Providers";
@@ -138,29 +137,27 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Providers session={session}>
-            <ThemeRegistry>
-              <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-                <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                  <div className="container flex h-14 items-center justify-between">
-                    <Navbar isManager={isManager} />
-                    <UserMenu />
-                  </div>
-                </header>
-                <main className="container mx-auto px-4 py-8 space-y-8">
-                  <div className="max-w-7xl mx-auto">{children}</div>
-                </main>
-                <footer className="border-t border-gray-200">
-                  <div className="container mx-auto px-4 py-6">
-                    <p className="text-center text-sm text-gray-500">
-                      © {new Date().getFullYear()} SolveCircle. All rights
-                      reserved.
-                    </p>
-                  </div>
-                </footer>
-                <Toaster />
-                <InstallPWA />
-              </div>
-            </ThemeRegistry>
+            <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+              <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-14 items-center justify-between">
+                  <Navbar isManager={isManager} />
+                  <UserMenu />
+                </div>
+              </header>
+              <main className="container mx-auto px-4 py-8 space-y-8">
+                <div className="max-w-7xl mx-auto">{children}</div>
+              </main>
+              <footer className="border-t border-gray-200">
+                <div className="container mx-auto px-4 py-6">
+                  <p className="text-center text-sm text-gray-500">
+                    © {new Date().getFullYear()} SolveCircle. All rights
+                    reserved.
+                  </p>
+                </div>
+              </footer>
+              <Toaster />
+              <InstallPWA />
+            </div>
           </Providers>
         </ThemeProvider>
       </body>
