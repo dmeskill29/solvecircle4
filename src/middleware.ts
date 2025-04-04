@@ -57,7 +57,8 @@ export default withAuth(
           "/about",
           "/auth/signin",
           "/auth/signup",
-          "/api/auth"
+          "/api/auth",
+          "/api/manifest"  // Allow access to manifest API
         ];
         const isPublicPath = publicPaths.some((path) =>
           req.nextUrl.pathname.startsWith(path)
@@ -90,11 +91,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
+     * - api/manifest (manifest API route)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - manifest.json and related files
+     * - icon files and other public assets
      */
-    '/((?!api|_next/static|_next/image|manifest.json|icon-|favicon.ico).*)',
+    '/((?!api/manifest|_next/static|_next/image|icon-|favicon.ico).*)',
   ],
 }; 
