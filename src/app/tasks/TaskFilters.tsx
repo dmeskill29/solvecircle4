@@ -30,7 +30,7 @@ export default function TaskFilters({ categories }: TaskFiltersProps) {
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
+    if (value && value !== "all") {
       params.set(key, value);
     } else {
       params.delete(key);
@@ -48,13 +48,13 @@ export default function TaskFilters({ categories }: TaskFiltersProps) {
     <div className="flex flex-wrap gap-4 items-center">
       <Select
         value={currentStatus}
-        onValueChange={(value) => updateFilters("status", value)}
+        onValueChange={(value: string) => updateFilters("status", value)}
       >
         <SelectTrigger className="w-[160px]">
           <SelectValue placeholder="Filter by status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Statuses</SelectItem>
+          <SelectItem value="all">All Statuses</SelectItem>
           <SelectItem value="PENDING">Pending</SelectItem>
           <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
           <SelectItem value="COMPLETED">Completed</SelectItem>
@@ -63,13 +63,13 @@ export default function TaskFilters({ categories }: TaskFiltersProps) {
 
       <Select
         value={currentPriority}
-        onValueChange={(value) => updateFilters("priority", value)}
+        onValueChange={(value: string) => updateFilters("priority", value)}
       >
         <SelectTrigger className="w-[160px]">
           <SelectValue placeholder="Filter by priority" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Priorities</SelectItem>
+          <SelectItem value="all">All Priorities</SelectItem>
           <SelectItem value="LOW">Low</SelectItem>
           <SelectItem value="MEDIUM">Medium</SelectItem>
           <SelectItem value="HIGH">High</SelectItem>
@@ -79,13 +79,13 @@ export default function TaskFilters({ categories }: TaskFiltersProps) {
 
       <Select
         value={currentCategory}
-        onValueChange={(value) => updateFilters("categoryId", value)}
+        onValueChange={(value: string) => updateFilters("categoryId", value)}
       >
         <SelectTrigger className="w-[160px]">
           <SelectValue placeholder="Filter by category" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Categories</SelectItem>
+          <SelectItem value="all">All Categories</SelectItem>
           {categories.map((category) => (
             <SelectItem key={category.id} value={category.id}>
               <div className="flex items-center gap-2">
