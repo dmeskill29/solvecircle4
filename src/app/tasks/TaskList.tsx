@@ -21,6 +21,11 @@ interface Task {
     name: string | null;
     email: string | null;
   };
+  category: {
+    id: string;
+    name: string;
+    color: string;
+  } | null;
 }
 
 interface TaskListProps {
@@ -87,6 +92,22 @@ export default function TaskList({ tasks }: TaskListProps) {
                 >
                   {task.priority}
                 </Badge>
+                {task.category && (
+                  <Badge
+                    className="flex items-center gap-1"
+                    style={{
+                      backgroundColor: `${task.category.color}20`,
+                      color: task.category.color,
+                      borderColor: task.category.color,
+                    }}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: task.category.color }}
+                    />
+                    {task.category.name}
+                  </Badge>
+                )}
               </div>
             </div>
             <time
