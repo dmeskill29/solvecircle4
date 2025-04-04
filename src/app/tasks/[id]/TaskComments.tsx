@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 
 interface User {
   id: string;

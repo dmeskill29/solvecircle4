@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/Toaster";
 import { InstallPWA } from "@/components/InstallPWA";
 import ThemeRegistry from "@/app/components/ThemeRegistry";
 import { Navbar } from "@/components/Navbar";

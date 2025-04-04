@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@radix-ui/react-label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/UseToast";
 
 export default function OnboardingPage() {
   const router = useRouter();
