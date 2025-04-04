@@ -91,11 +91,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - manifest.json (PWA manifest)
      * - api/manifest (manifest API route)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - icon files and other public assets
      */
-    '/((?!api/manifest|_next/static|_next/image|icon-|favicon.ico).*)',
+    '/((?!manifest.json|api/manifest|_next/static|_next/image|icon-|favicon.ico).*)',
   ],
 }; 
