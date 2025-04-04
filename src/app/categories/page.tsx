@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { CategoryForm } from "./CategoryForm";
-import { CategoryList } from "./CategoryList";
+import { Categories } from "./Categories";
 
 export default async function CategoriesPage() {
   const session = await getServerSession(authOptions);
@@ -47,8 +46,7 @@ export default async function CategoriesPage() {
           </p>
         </div>
 
-        <CategoryForm businessId={employee.businessId} />
-        <CategoryList categories={categories} />
+        <Categories categories={categories} businessId={employee.businessId} />
       </div>
     </div>
   );
