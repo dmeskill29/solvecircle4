@@ -10,23 +10,14 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 
-interface Category {
-  id: string;
-  name: string;
-  color: string;
-}
+interface TaskFiltersProps {}
 
-interface TaskFiltersProps {
-  categories: Category[];
-}
-
-export default function TaskFilters({ categories }: TaskFiltersProps) {
+export default function TaskFilters({}: TaskFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const currentStatus = searchParams.get("status") || "";
   const currentPriority = searchParams.get("priority") || "";
-  const currentCategory = searchParams.get("categoryId") || "";
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -42,7 +33,7 @@ export default function TaskFilters({ categories }: TaskFiltersProps) {
     router.push("/tasks");
   };
 
-  const hasFilters = currentStatus || currentPriority || currentCategory;
+  const hasFilters = currentStatus || currentPriority;
 
   return (
     <div className="flex flex-wrap gap-4 items-center">
@@ -74,29 +65,6 @@ export default function TaskFilters({ categories }: TaskFiltersProps) {
           <SelectItem value="MEDIUM">Medium</SelectItem>
           <SelectItem value="HIGH">High</SelectItem>
           <SelectItem value="URGENT">Urgent</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select
-        value={currentCategory}
-        onValueChange={(value) => updateFilters("categoryId", value)}
-      >
-        <SelectTrigger className="w-[160px]">
-          <SelectValue placeholder="Filter by category" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="">All Categories</SelectItem>
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id}>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: category.color }}
-                />
-                {category.name}
-              </div>
-            </SelectItem>
-          ))}
         </SelectContent>
       </Select>
 
