@@ -74,6 +74,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className={cn(inter.className, "min-h-screen bg-background")}>
         <Providers session={session}>
           <ThemeProvider
