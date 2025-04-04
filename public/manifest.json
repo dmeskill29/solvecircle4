@@ -2,8 +2,8 @@
   "name": "SolveCircle",
   "short_name": "SolveCircle",
   "description": "A platform for solving problems together",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0284c7",
@@ -42,13 +42,13 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./icon-192x192.png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icon-512x512.png",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
