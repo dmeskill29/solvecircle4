@@ -1,4 +1,5 @@
-// Inspired by react-hot-toast library
+"use client";
+
 import * as React from "react"
 
 import type {
@@ -43,14 +44,14 @@ type Action =
     }
   | {
       type: ActionType["DISMISS_TOAST"]
-      toastId?: ToasterToast["id"]
+      toastId?: string
     }
   | {
       type: ActionType["REMOVE_TOAST"]
-      toastId?: ToasterToast["id"]
+      toastId?: string
     }
 
-interface State {
+type State = {
   toasts: ToasterToast[]
 }
 
@@ -91,8 +92,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -128,8 +127,8 @@ export const reducer = (state: State, action: Action): State => {
 }
 
 const listeners: Array<(state: State) => void> = []
-
-let memoryState: State = { toasts: [] }
+const defaultState: State = { toasts: [] }
+let memoryState: State = defaultState
 
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
@@ -138,7 +137,7 @@ function dispatch(action: Action) {
   })
 }
 
-type Toast = Omit<ToasterToast, "id">
+interface Toast extends Omit<ToasterToast, "id"> {}
 
 function toast({ ...props }: Toast) {
   const id = genId()
@@ -170,17 +169,19 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
+  const [state, setState] = React.useState<State>(defaultState)
 
   React.useEffect(() => {
     listeners.push(setState)
+    setState(memoryState)
+
     return () => {
       const index = listeners.indexOf(setState)
       if (index > -1) {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [])
 
   return {
     ...state,
