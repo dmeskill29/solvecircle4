@@ -10,6 +10,7 @@ const publicAssets = [
   '/icon-512x512.png',
   '/icon.png',
   '/favicon.ico',
+  '/screenshots',
 ];
 
 // Define public paths that don't require authentication
@@ -23,15 +24,17 @@ const publicPaths = [
 
 export default withAuth(
   async function middleware(req: NextRequest) {
+    const pathname = req.nextUrl.pathname;
+
     // Check if the request is for a public asset
-    if (publicAssets.some(asset => req.nextUrl.pathname === asset)) {
+    if (publicAssets.some(asset => pathname === asset || pathname.startsWith(asset + '/'))) {
       return NextResponse.next();
     }
 
     // If they're trying to access the signin page and are already logged in,
     // check token directly instead of using req.nextauth
     const token = await getToken({ req });
-    if (req.nextUrl.pathname.startsWith("/auth/signin") && token) {
+    if (pathname.startsWith("/auth/signin") && token) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
@@ -51,20 +54,17 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ req, token }) => {
-        // Public paths that don't require authentication
-        const publicPaths = [
-          "/",
-          "/about",
-          "/auth/signin",
-          "/auth/signup",
-          "/api/auth",
-          "/api/manifest"  // Allow access to manifest API
-        ];
-        const isPublicPath = publicPaths.some((path) =>
-          req.nextUrl.pathname.startsWith(path)
-        );
+        const pathname = req.nextUrl.pathname;
 
-        if (isPublicPath) return true;
+        // Check for public assets first
+        if (publicAssets.some(asset => pathname === asset || pathname.startsWith(asset + '/'))) {
+          return true;
+        }
+
+        // Check for public paths
+        if (publicPaths.some(path => pathname.startsWith(path))) {
+          return true;
+        }
 
         // Require authentication for protected paths
         const protectedPaths = [
@@ -76,9 +76,7 @@ export default withAuth(
           "/onboarding",
           "/achievements"
         ];
-        const isProtectedPath = protectedPaths.some((path) =>
-          req.nextUrl.pathname.startsWith(path)
-        );
+        const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
         // Only require authentication for protected paths
         return !isProtectedPath || !!token;
@@ -91,11 +89,10 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - manifest.json (PWA manifest)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - icon files and other public assets
+     * - favicon.ico (favicon file)
      */
-    '/((?!manifest.json|_next/static|_next/image|icon-|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico).*)',
   ],
 }; 

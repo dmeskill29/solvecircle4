@@ -11,28 +11,28 @@
   "categories": ["productivity", "business", "utilities"],
   "screenshots": [
     {
-      "src": "./screenshots/tasks-mobile-light.png",
+      "src": "/screenshots/tasks-mobile-light.png",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Tasks Overview in Light Mode (Mobile)"
     },
     {
-      "src": "./screenshots/tasks-mobile-dark.png",
+      "src": "/screenshots/tasks-mobile-dark.png",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Tasks Overview in Dark Mode (Mobile)"
     },
     {
-      "src": "./screenshots/tasks-light.png",
+      "src": "/screenshots/tasks-light.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Tasks Overview in Light Mode"
     },
     {
-      "src": "./screenshots/tasks-dark.png",
+      "src": "/screenshots/tasks-dark.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
