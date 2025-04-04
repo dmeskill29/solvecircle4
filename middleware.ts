@@ -43,15 +43,12 @@ export const config = {
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  console.log(`--- MIDDLEWARE EXECUTED for path: ${pathname} ---`); // <--- ADD THIS LOG
 
   // Check for public files first
-  if (
-    pathname === "/manifest.json" ||
-    pathname.startsWith("/icon-") || // Covers both icons
-    pathname.startsWith("/screenshots/") || // Covers all screenshots
-    pathname === "/favicon.ico"
-  ) {
-    return NextResponse.next();
+  if (publicFiles.some(path => pathname.startsWith(path))) {
+     console.log(`>>> Middleware allowing public asset: ${pathname}`);
+     return NextResponse.next();
   }
 
   // Check for public paths
