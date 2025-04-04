@@ -202,7 +202,7 @@ export function TaskDetails({ task, isManager, isAssigned }: TaskDetailsProps) {
                   disabled={isUpdating}
                 >
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue />
+                    <SelectValue placeholder={status} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PENDING">Pending</SelectItem>
@@ -230,7 +230,7 @@ export function TaskDetails({ task, isManager, isAssigned }: TaskDetailsProps) {
                   disabled={isUpdating}
                 >
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue />
+                    <SelectValue placeholder={priority} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="LOW">Low</SelectItem>
