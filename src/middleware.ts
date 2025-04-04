@@ -51,15 +51,19 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ req, token }) => {
-        // Allow access to public paths and assets without authentication
+        // Public paths that don't require authentication
+        const publicPaths = [
+          "/",
+          "/about",
+          "/auth/signin",
+          "/auth/signup",
+          "/api/auth"
+        ];
         const isPublicPath = publicPaths.some((path) =>
           req.nextUrl.pathname.startsWith(path)
         );
-        const isPublicAsset = publicAssets.some(asset =>
-          req.nextUrl.pathname === asset
-        );
 
-        if (isPublicPath || isPublicAsset) return true;
+        if (isPublicPath) return true;
 
         // Require authentication for protected paths
         const protectedPaths = [
@@ -89,8 +93,7 @@ export const config = {
      * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - manifest.json
-     * - icons
+     * - manifest.json and related files
      */
     '/((?!api|_next/static|_next/image|manifest.json|icon-|favicon.ico).*)',
   ],
