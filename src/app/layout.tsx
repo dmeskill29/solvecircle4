@@ -68,75 +68,20 @@ export default async function RootLayout({
       isManager = user?.role === "MANAGER";
     } catch (error) {
       console.error("Error fetching user data:", error);
-      // Default to non-manager if there's an error
       isManager = false;
     }
   }
 
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              async function registerServiceWorker() {
-                if ('serviceWorker' in navigator) {
-                  try {
-                    // Unregister any existing service workers
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (let registration of registrations) {
-                      await registration.unregister();
-                      console.log('Service Worker unregistered');
-                    }
-
-                    // Clear all caches
-                    if ('caches' in window) {
-                      const cacheNames = await caches.keys();
-                      await Promise.all(
-                        cacheNames.map(cacheName => caches.delete(cacheName))
-                      );
-                      console.log('Caches cleared');
-                    }
-
-                    // Register new service worker
-                    const registration = await navigator.serviceWorker.register('/sw.js', {
-                      scope: '/'
-                    });
-                    console.log('Service Worker registered with scope:', registration.scope);
-
-                    // Handle updates
-                    registration.addEventListener('updatefound', () => {
-                      const newWorker = registration.installing;
-                      console.log('Service Worker update found!');
-
-                      newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                          // New content is available, reload the page
-                          window.location.reload();
-                        }
-                      });
-                    });
-
-                  } catch (error) {
-                    console.error('Service worker registration failed:', error);
-                  }
-                }
-              }
-
-              // Register service worker on page load
-              window.addEventListener('load', registerServiceWorker);
-            `,
-          }}
-        />
-      </head>
+    <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.className, "min-h-screen bg-background")}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Providers session={session}>
+        <Providers session={session}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
               <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-14 items-center justify-between">
@@ -158,8 +103,8 @@ export default async function RootLayout({
               <Toaster />
               <InstallPWA />
             </div>
-          </Providers>
-        </ThemeProvider>
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
