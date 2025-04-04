@@ -2,26 +2,56 @@ const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
-const inputFile = 'SolveCircle.png';
-const outputDir = path.join('public', 'icons');
-
-// Ensure output directory exists
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
-}
+const sizes = [192, 512];
+const sourceSvg = path.join(__dirname, '../public/icon.svg');
+const outputDir = path.join(__dirname, '../public');
 
 async function generateIcons() {
   try {
-    for (const size of sizes) {
-      await sharp(inputFile)
-        .resize(size, size)
-        .toFile(path.join(outputDir, `icon-${size}x${size}.png`));
-      console.log(`Generated ${size}x${size} icon`);
+    console.log('Starting icon generation...');
+    console.log('Source SVG path:', sourceSvg);
+    console.log('Output directory:', outputDir);
+
+    // Check if source SVG exists
+    if (!fs.existsSync(sourceSvg)) {
+      throw new Error(`Source SVG file not found at ${sourceSvg}`);
     }
-    console.log('All icons generated successfully!');
+
+    // Create output directory if it doesn't exist
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+      console.log('Created output directory');
+    }
+
+    // First convert SVG to high-res PNG
+    console.log('Converting SVG to PNG...');
+    await sharp(sourceSvg)
+      .resize(1024, 1024)
+      .png()
+      .toFile(path.join(outputDir, 'icon.png'));
+
+    console.log('Created base PNG icon');
+
+    // Generate icons for each size
+    for (const size of sizes) {
+      console.log(`Generating ${size}x${size} icon...`);
+      const outputPath = path.join(outputDir, `icon-${size}x${size}.png`);
+      await sharp(path.join(outputDir, 'icon.png'))
+        .resize(size, size)
+        .toFile(outputPath);
+      
+      // Verify file was created
+      if (fs.existsSync(outputPath)) {
+        console.log(`Successfully generated ${size}x${size} icon at ${outputPath}`);
+      } else {
+        throw new Error(`Failed to create icon at ${outputPath}`);
+      }
+    }
+
+    console.log('Icon generation complete!');
   } catch (error) {
     console.error('Error generating icons:', error);
+    process.exit(1);
   }
 }
 
