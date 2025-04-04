@@ -4,12 +4,12 @@ import { Inter } from "next/font/google";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Toaster } from "@/components/ui/Toaster";
 import { InstallPWA } from "@/components/InstallPWA";
 import { Navbar } from "@/components/Navbar";
 import { UserMenu } from "@/components/UserMenu";
 import { Providers } from "@/components/Providers";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ToasterProvider } from "@/components/ToasterProvider";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -100,7 +100,7 @@ export default async function RootLayout({
                   </p>
                 </div>
               </footer>
-              <Toaster />
+              <ToasterProvider />
               <InstallPWA />
             </div>
           </ThemeProvider>
