@@ -6,7 +6,7 @@ import { CacheProvider } from "@emotion/react";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { createTheme } from "@mui/material/styles";
-import { useState } from "react";
+import { useMemo } from "react";
 
 const theme = createTheme({
   palette: {
@@ -26,7 +26,7 @@ export default function ThemeRegistry({
 }: {
   children: React.ReactNode;
 }) {
-  const [{ cache, flush }] = useState(() => {
+  const { cache, flush } = useMemo(() => {
     const cache = createCache({
       key: "mui",
     });
@@ -46,7 +46,7 @@ export default function ThemeRegistry({
       return prevInserted;
     };
     return { cache, flush };
-  });
+  }, []);
 
   useServerInsertedHTML(() => {
     const names = flush();
