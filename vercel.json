@@ -1,12 +1,9 @@
 {
   "git": {
     "deploymentEnabled": {
-      "main": true,
       "master": true
     }
   },
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
   "framework": "nextjs",
   "headers": [
     {
@@ -14,7 +11,7 @@
       "headers": [
         {
           "key": "Content-Type",
-          "value": "application/manifest+json; charset=utf-8"
+          "value": "application/manifest+json"
         },
         {
           "key": "Access-Control-Allow-Origin",
@@ -22,32 +19,18 @@
         },
         {
           "key": "Cache-Control",
-          "value": "public, max-age=3600, must-revalidate"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
+          "value": "public, max-age=3600"
         }
       ]
     },
     {
-      "source": "/(.*)\\.(png|jpg|jpeg|gif|webp|ico)$",
+      "source": "/(.*)\\.(?:png|jpg|jpeg|gif|webp|ico)$",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=3600, must-revalidate"
+          "value": "public, max-age=3600"
         }
       ]
-    }
-  ],
-  "routes": [
-    {
-      "src": "/manifest.json",
-      "headers": {
-        "Content-Type": "application/manifest+json; charset=utf-8",
-        "Cache-Control": "public, max-age=3600, must-revalidate"
-      },
-      "continue": true
     }
   ]
 } 
